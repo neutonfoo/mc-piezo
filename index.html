@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/ico" href="./favicon.ico" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+      crossorigin="anonymous"
+    ></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Tone.js -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.13/Tone.js"
+      integrity="sha512-SAB2YrHeaZfb6W1w+tAMm+IUICzUMyf7TJ8upY+NjLYl8jseufUW4yYzoSHfNL9N2rzDlw5PWJrf7rPIQ6VhNw=="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.27/build/Midi.min.js"></script>
+    <!-- Custom -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Title -->
+    <title>MC Piezo</title>
+  </head>
+  <body>
+    <h1 class="mt-2 mb-2">MC Piezo</h1>
+    <div class="container narrow-container">
+      <div class="content">
+        <div id="about">
+          MC Piezo converts midi files to C code that plays a tune on a Piezo
+          buzzer. Up to two tracks can be selected for up to two Piezo buzzers.
+        </div>
+      </div>
+      <h2 class="mt-2 mb-2">Directions</h2>
+      <div class="content">
+        <p>
+          If you are using a single Piezo buzzer, define your pin on
+          <code>PIEZO_PIN</code>. If you are using two Piezo buzzers, define
+          your pins on <code>PIEZO_PIN_1</code> and <code>PIEZO_PIN_2</code>.
+          Set their pin mode to <code>OUTPUT</code>. You should also have a copy
+          of <code>pitches.h</code> from
+          <a
+            href="https://www.arduino.cc/en/Tutorial/BuiltInExamples/toneMelody"
+            target="_blank"
+            >https://www.arduino.cc/en/Tutorial/BuiltInExamples/toneMelody</a
+          >.
+        </p>
+        <hr />
+        <p>
+          <strong>Direct</strong> conversion will produce a single
+          <code>void play()</code> function that can be called directly. This
+          will take up more memory.
+        </p>
+        <p>
+          <strong>Optimized</strong> conversion will produce a
+          <code>const struct _tone song[]</code> that should also be copied. You
+          will also need to copy the <code>_tone</code> struct and
+          <code>void play()</code> function (below) into your code to
+          succesfully play the tune. This is not required for Direct conversion
+          but will take significantly less memory.
+        </p>
+        <pre>
+struct _tone {
+  int8_t buzzer;
+  uint16_t note;
+  uint16_t duration;
+};
+
+void play() {
+  for(const _tone t : song) {
+    if(!t.buzzer) delay(t.duration);
+    else tone(t.buzzer, t.note, t.duration);
+  }
+}
+</pre
+        >
+        <hr />
+        <p>
+          For best results, use a midi file with 2 tracks. Solo piano midi files
+          are good candidates where one track is the treble clef and one track
+          is the bass clef.
+        </p>
+        <p>
+          Clicking Demo will play the selected tracks. This is
+          <strong>NOT</strong> representative of what the tune will sound on the
+          microcontroller due to hardware limitations.
+        </p>
+        <p>Drag and drop a midi file into the space below to start.</p>
+      </div>
+      <h2 class="mt-2 mb-2">~ Converter ~</h2>
+      <div class="content">
+        <div class="form-group text-center">
+          <h4>Midi File Drop</h4>
+          <div id="midi-filedrop">
+            <p id="midi-filename">Drop a midi file here</p>
+            <input type="file" accept="audio/midi" />
+          </div>
+        </div>
+        <div class="form-group text-center">
+          <h4 class="mt-3">Number of Piezo Buzzers</h4>
+          <div class="btn-group" role="group">
+            <input
+              type="radio"
+              name="piezo-num"
+              class="btn-check piezo-num"
+              id="piezo-num-1"
+              value="1"
+              checked
+            />
+            <label class="btn btn-outline-dark" for="piezo-num-1">
+              1 Piezo
+            </label>
+            <input
+              type="radio"
+              name="piezo-num"
+              class="btn-check piezo-num"
+              id="piezo-num-2"
+              value="2"
+            />
+            <label class="btn btn-outline-dark" for="piezo-num-2">
+              2 Piezo
+            </label>
+          </div>
+        </div>
+        <div class="form-group text-center">
+          <h4 class="mt-3">Select Tracks</h4>
+          <div id="tracks-selector" class="list-group">
+            Tracks will be loaded here.
+          </div>
+          <button
+            type="button"
+            id="demo-button"
+            class="btn btn-outline-primary mt-2"
+            data-bs-toggle="button"
+          >
+            Play Demo
+          </button>
+        </div>
+        <div class="form-group text-center">
+          <h4 class="mt-3">Generate Commands</h4>
+          <button
+            type="button"
+            class="btn generate-button"
+            id="generate-button-direct"
+            value="direct"
+          >
+            Direct
+          </button>
+          <button
+            type="button"
+            class="btn btn-warning generate-button"
+            value="optimized"
+          >
+            Optimized
+          </button>
+          <div class="form-floating mt-3">
+            <textarea
+              class="form-control"
+              placeholder="Select All &rarr; Copy & Paste"
+              id="commands"
+              readonly
+            ></textarea>
+            <label for="commands">Select All &rarr; Copy & Paste</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer text-center">
+        <p>
+          2021 &bull;
+          <a href="https://github.com/neutonfoo/mc-piezo" class="text-dark"
+            >GitHub</a
+          >
+          &bull;
+          <a href="https://neutonfoo.com/" class="text-dark"
+            >https://neutonfoo.com/</a
+          >
+        </p>
+      </div>
+    </div>
+    <script src="frequenciesSort.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
