@@ -356,5 +356,5 @@ function sortNotesByTimeAndFrequency(a, b) {
   }
 
   // Will only be reached if notes exist on different tracks
-  return a.trackId;
+  return 0;
 }
